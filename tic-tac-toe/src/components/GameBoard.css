@@ -1,0 +1,12 @@
+.squares {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    width: 600px;
+    height: 600px;
+    background-color: aqua;
+}
+
+.square {
+    position: relative;
+    border: 2px solid #fff;
+}
