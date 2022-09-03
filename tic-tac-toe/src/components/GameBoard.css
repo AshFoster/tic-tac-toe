@@ -4,9 +4,18 @@
     width: 600px;
     height: 600px;
     background-color: aqua;
+    border: 2px solid #fff;
+    border-radius: 4px;
 }
 
 .square {
     position: relative;
     border: 2px solid #fff;
+}
+
+.square img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
 }
