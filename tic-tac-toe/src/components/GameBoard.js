@@ -1,39 +1,52 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import './GameBoard.css'
 
 export default function GameBoard({ numSquares, reset, setReset }) {
-  const [squares, setSquares] = useState([...Array(numSquares)].map(() => ({ id: Math.random(), selected: false, disabled: false })))
+  const initialSquares = [...Array(numSquares)].map((value, index) => (value = { id: index + 1, selected: false, disabled: false }))
+  const [squares, setSquares] = useState([...initialSquares])
   const [turns, setTurns] = useState(0)
-  const [selectedSquare, setSelectedSquare] = useState(null)
 
   const handleClick = (id, disabled) => {
     if (!disabled) {
+      setSquares(prevSquares => {
+        return prevSquares.map(square => {
+          if (square.id === id) {
+            return {...square, selected: true, disabled: true, turn: turns + 1}
+          } else {
+            return square
+          }
+        })
+      })
       setTurns(prevTurns => prevTurns + 1)
-      setSelectedSquare(id)
     }
   }
 
+  const computerTurn = useCallback(() => {
+    let availableSquares = squares.filter(square => !square.selected)
+    let computerChoice = availableSquares[Math.floor(Math.random() * availableSquares.length)].id
+    setTimeout(() => {
+      document.getElementById(computerChoice).click()
+    }, 1000)
+  }, [squares])
+
+  const resetGame = () => {
+    setSquares([...initialSquares])
+    setTurns(0)
+    setReset(false)
+  }
+
   useEffect(() => {
-    if (!reset) {
-      if (turns !== 0) {
-        setSquares(prevSquares => {
-          return prevSquares.map(square => {
-            if (square.id === selectedSquare) {
-              return {...square, selected: true, disabled: true, turn: turns}
-            } else {
-              return square
-            }
-          })
-        })
-      }
-    } else {
-      setSquares([...Array(numSquares)].map(() => ({ id: Math.random(), selected: false, disabled: false })))
-      setTurns(0)
-      setSelectedSquare(null)
-      setReset(false)
+    if (turns % 2 !== 0 && turns < 9) {
+      computerTurn()
     }
-  }, [turns, selectedSquare, reset])
+  }, [turns, computerTurn])
+
+  useEffect(() => {
+    if (reset) {
+      resetGame()
+    }
+  })
 
   return (
     <div className='squares'>
