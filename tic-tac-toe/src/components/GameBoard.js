@@ -29,8 +29,11 @@ export default function GameBoard({ numSquares, reset, setReset }) {
   const computerTurn = useCallback(() => {
     let availableSquares = squares.filter(square => !square.selected)
     let computerChoice = availableSquares[Math.floor(Math.random() * availableSquares.length)].id
+    document.getElementById('gameBoard').style.pointerEvents = 'none'
     setTimeout(() => {
+      document.getElementById('gameBoard').style.pointerEvents = 'auto'
       document.getElementById(computerChoice).click()
+      
     }, 1000)
   }, [squares])
 
@@ -63,6 +66,7 @@ export default function GameBoard({ numSquares, reset, setReset }) {
     return [winner, player]
   }, [turns, squares, winningCombos9])
 
+  // players computer turn or but updates winner paragraph and sets endGame if there's a winner
   useEffect(() => {
     const [winner, player] = checkWinner()
     if (winner && !endGame) {
@@ -74,12 +78,14 @@ export default function GameBoard({ numSquares, reset, setReset }) {
     }
   }, [turns, computerTurn, checkWinner, endGame])
 
+  // resets game settings if reset is true
   useEffect(() => {
     if (reset) {
       resetGame()
     }
   })
 
+  // sets all squares to disabled if endGame is true
   useEffect(() => {
     if (endGame) {
       setSquares(prevSquares => {
@@ -91,7 +97,7 @@ export default function GameBoard({ numSquares, reset, setReset }) {
   }, [endGame])
 
   return (
-    <div className='squares'>
+    <div className='squares' id='gameBoard'>
       {squares.map((square) => (
         <div className={square.selected ? 'square selected' : 'square'} key={square.id} id={square.id} onClick={() => handleClick(square.id, square.disabled)}>
           <img className={square.selected && square.turn % 2 !== 0 ? 'selected' : ''} src='../../img/circle.png' alt='circle'/>
