@@ -4,9 +4,12 @@ import './GameBoard.css'
 
 export default function GameBoard({ numSquares, reset, setReset }) {
   const initialSquares = [...Array(numSquares)].map((value, index) => (value = { id: index + 1, selected: false, disabled: false }))
+  const winningCombos9 = [123, 456, 789, 147, 258, 369, 159, 357].map(value => value.toString().split(''))
   const [squares, setSquares] = useState([...initialSquares])
   const [turns, setTurns] = useState(0)
+  const [endGame, setEndGame] = useState(false)
 
+  // handle player clicks
   const handleClick = (id, disabled) => {
     if (!disabled) {
       setSquares(prevSquares => {
@@ -22,6 +25,7 @@ export default function GameBoard({ numSquares, reset, setReset }) {
     }
   }
 
+  // simulate computer turn
   const computerTurn = useCallback(() => {
     let availableSquares = squares.filter(square => !square.selected)
     let computerChoice = availableSquares[Math.floor(Math.random() * availableSquares.length)].id
@@ -30,23 +34,61 @@ export default function GameBoard({ numSquares, reset, setReset }) {
     }, 1000)
   }, [squares])
 
+  // reset game
   const resetGame = () => {
     setSquares([...initialSquares])
     setTurns(0)
     setReset(false)
+    setEndGame(false)
+    document.getElementById('winner').textContent = ''
   }
 
+  // check if there is a winner
+  const checkWinner = useCallback(() => {
+    let playerTurns = []
+    let player = ''
+    if (turns % 2 !== 0) {
+      playerTurns = squares.filter(square => square.turn && square.turn % 2 !== 0)
+      player = 'Player'
+    } else {
+      playerTurns = squares.filter(square => square.turn && square.turn % 2 === 0)
+      player = 'Computer'
+    }
+    let playerSquares = [...playerTurns.map((turn) => turn.id)].join('')
+    let winner = winningCombos9.some((combo) => {
+      return combo.every((comboItem) => {
+        return playerSquares.includes(comboItem)
+      })
+    })
+    return [winner, player]
+  }, [turns, squares, winningCombos9])
+
   useEffect(() => {
-    if (turns % 2 !== 0 && turns < 9) {
+    const [winner, player] = checkWinner()
+    if (winner && !endGame) {
+      document.getElementById('winner').textContent = `${player} wins!`
+      setEndGame(true)
+    }
+    if (turns % 2 !== 0 && turns < 9 && !winner) {
       computerTurn()
     }
-  }, [turns, computerTurn])
+  }, [turns, computerTurn, checkWinner, endGame])
 
   useEffect(() => {
     if (reset) {
       resetGame()
     }
   })
+
+  useEffect(() => {
+    if (endGame) {
+      setSquares(prevSquares => {
+        return prevSquares.map(square => {
+          return {...square, disabled: true}
+        })
+      })
+    }
+  }, [endGame])
 
   return (
     <div className='squares'>

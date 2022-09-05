@@ -20,3 +20,6 @@ button:hover {
   align-items: center;
   margin-top: 50px;
 }
+#winner {
+  font-size: 120%;
+}

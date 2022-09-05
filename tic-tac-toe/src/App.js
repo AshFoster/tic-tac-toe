@@ -13,6 +13,7 @@ function App() {
       <div className='game-area'>
         <GameBoard numSquares={numSquares} reset={reset} setReset={setReset}/>
       </div>
+      <p id='winner'></p>
     </div>
   );
 }
