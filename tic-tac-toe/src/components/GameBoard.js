@@ -25,30 +25,61 @@ export default function GameBoard({ numSquares, reset, setReset }) {
     }
   }
 
-  // simulate computer turn
-  const computerTurn = useCallback(() => {
-    let playerTurns = squares.filter(square => square.turn && square.turn % 2 !== 0)
+  // calculate winning squares or squares to block
+  const calcWinningSquares = useCallback((playerType) => {
+    let playerTurns = []
+    if (playerType === 'computer') {
+      playerTurns = squares.filter(square => square.turn && square.turn % 2 === 0)
+    } else if (playerType === 'player'){
+      playerTurns = squares.filter(square => square.turn && square.turn % 2 !== 0)
+    } else {
+      return [[], []]
+    }
+    
     let playerSquares = [...playerTurns.map((square) => square.id)].join('')
+
     let winningSquares = winningCombos9.map((combo) => {
       return combo.filter((comboItem) => {
         return !playerSquares.includes(comboItem)
       })
     }).filter(combo => combo.length === 1).map(array => parseInt(array))
+
+    return [winningSquares, playerSquares]
+  }, [winningCombos9, squares])
+
+  // simulate computer turn
+  const computerTurn = useCallback(() => {
+    let [winningSquaresPlayer, playerSquares] = calcWinningSquares('player')
+    let [winningSquaresComputer] = calcWinningSquares('computer')
+    winningSquaresComputer = winningSquaresComputer.filter(square => !playerSquares.includes(square))
+
+    let winningSquares = []
+
+    if (winningSquaresComputer.length) {
+      winningSquares = winningSquaresComputer
+    } else {
+      winningSquares = winningSquaresPlayer
+    }
+
     let availableSquares = []
-    if (winningSquares.length > 0) {
+
+    if (winningSquares.length) {
       availableSquares = squares.filter(square => !square.selected && winningSquares.includes(square.id))
     }
+
     if (!availableSquares.length) {
       availableSquares = squares.filter(square => !square.selected)
     }
+
     let computerChoice = availableSquares[Math.floor(Math.random() * availableSquares.length)].id
+
     document.getElementById('gameBoard').style.pointerEvents = 'none'
+
     setTimeout(() => {
       document.getElementById('gameBoard').style.pointerEvents = 'auto'
       document.getElementById(computerChoice).click()
-      
     }, 1000)
-  }, [squares, winningCombos9])
+  }, [squares, calcWinningSquares])
 
   // reset game
   const resetGame = () => {
@@ -79,7 +110,7 @@ export default function GameBoard({ numSquares, reset, setReset }) {
     return [winner, player]
   }, [turns, squares, winningCombos9])
 
-  // players computer turn or but updates winner paragraph and sets endGame if there's a winner
+  // plays computer turn or updates winner paragraph and sets endGame if there's a winner
   useEffect(() => {
     const [winner, player] = checkWinner()
     if (winner && !endGame) {
