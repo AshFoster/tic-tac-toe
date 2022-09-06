@@ -27,7 +27,20 @@ export default function GameBoard({ numSquares, reset, setReset }) {
 
   // simulate computer turn
   const computerTurn = useCallback(() => {
-    let availableSquares = squares.filter(square => !square.selected)
+    let playerTurns = squares.filter(square => square.turn && square.turn % 2 !== 0)
+    let playerSquares = [...playerTurns.map((square) => square.id)].join('')
+    let winningSquares = winningCombos9.map((combo) => {
+      return combo.filter((comboItem) => {
+        return !playerSquares.includes(comboItem)
+      })
+    }).filter(combo => combo.length === 1).map(array => parseInt(array))
+    let availableSquares = []
+    if (winningSquares.length > 0) {
+      availableSquares = squares.filter(square => !square.selected && winningSquares.includes(square.id))
+    }
+    if (!availableSquares.length) {
+      availableSquares = squares.filter(square => !square.selected)
+    }
     let computerChoice = availableSquares[Math.floor(Math.random() * availableSquares.length)].id
     document.getElementById('gameBoard').style.pointerEvents = 'none'
     setTimeout(() => {
@@ -35,7 +48,7 @@ export default function GameBoard({ numSquares, reset, setReset }) {
       document.getElementById(computerChoice).click()
       
     }, 1000)
-  }, [squares])
+  }, [squares, winningCombos9])
 
   // reset game
   const resetGame = () => {
@@ -57,7 +70,7 @@ export default function GameBoard({ numSquares, reset, setReset }) {
       playerTurns = squares.filter(square => square.turn && square.turn % 2 === 0)
       player = 'Computer'
     }
-    let playerSquares = [...playerTurns.map((turn) => turn.id)].join('')
+    let playerSquares = [...playerTurns.map((square) => square.id)].join('')
     let winner = winningCombos9.some((combo) => {
       return combo.every((comboItem) => {
         return playerSquares.includes(comboItem)
