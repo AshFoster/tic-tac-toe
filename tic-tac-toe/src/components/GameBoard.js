@@ -116,6 +116,9 @@ export default function GameBoard({ numSquares, reset, setReset }) {
     if (winner && !endGame) {
       document.getElementById('winner').textContent = `${player} wins!`
       setEndGame(true)
+    } else if (turns === 9) {
+      document.getElementById('winner').textContent = `It's a draw!`
+      setEndGame(true)
     }
     if (turns % 2 !== 0 && turns < 9 && !winner) {
       computerTurn()
